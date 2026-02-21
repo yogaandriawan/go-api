@@ -20,7 +20,9 @@ func ConnectDB() *gorm.DB {
         log.Fatal("Database URL is empty. Please check your .env file.")
     }
 
-    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+        PrepareStmt: false,
+    })
     if err != nil {
         panic(err)
     }
