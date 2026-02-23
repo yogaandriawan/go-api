@@ -21,9 +21,9 @@ type UserCreateRequest struct {
 
 // Struct for user update request, used to receive data when updating an existing user
 type UserUpdateRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Username string `json:"username" binding:"required" gorm:"unique;not null"`
-	Email    string `json:"email" binding:"required" gorm:"unique;not null"`
+	Name     string `json:"name"`
+	Username string `json:"username" gorm:"unique;not null"`
+	Email    string `json:"email" gorm:"unique;not null"`
 	Password string `json:"password,omitempty"`
 }
 

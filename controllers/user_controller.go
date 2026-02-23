@@ -143,3 +143,101 @@ func CreateUser(c *gin.Context) {
 
 }
 
+// func to UpdateUser patch user by id
+func UpdateUser(c *gin.Context) {
+
+	// get id from path parameter
+	id := c.Param("id")
+
+	// Inisialisation user
+	var user models.User
+
+	// check if user exists, if not return response with status 404 Not Found and error messages
+	if err := database.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User not found",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	//struct user request
+	var req structs.UserUpdateRequest
+
+	// Bind JSON request to struct UserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, structs.ErrorResponse{
+			Success: false,
+			Message: "Validation Errors",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	// Update user fields if they are provided in the request
+	if req.Password != "" {
+    hashedPassword := helpers.HashPassword(req.Password)
+    
+    req.Password = hashedPassword
+	}
+	// save updated user into database, if there's an error return response with status 500 Internal Server Error and error messages
+	if err := database.DB.Model(&user).Updates(req).Error; err != nil {
+      c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+      	Success: false,
+      	Message: "Failed to update user",
+				Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	// success response with status 200 OK and updated user data
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "User updated successfully",
+		Data: structs.UserResponse{
+			Id:        user.Id,
+			Name:      user.Name,
+			Username:  user.Username,
+			Email:     user.Email,
+			CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
+			UpdatedAt: user.UpdatedAt.Format("2006-01-02 15:04:05"),
+		},
+	})
+}
+
+func DeleteUser(c *gin.Context) {
+
+	// get id from path parameter
+	id := c.Param("id")
+
+	// Inisialisasi user
+	var user models.User
+
+	// check if user exists, if not return response with status 404 Not Found and error messages
+	if err := database.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, structs.ErrorResponse{
+			Success: false,
+			Message: "User not found",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	// Delete user from database, if there's an error return response with status 500 Internal Server Error and error messages
+	if err := database.DB.Delete(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, structs.ErrorResponse{
+			Success: false,
+			Message: "Failed to delete user",
+			Errors:  helpers.TranslateErrorMessage(err),
+		})
+		return
+	}
+
+	// success response with status 200 OK and message user deleted successfully
+	c.JSON(http.StatusOK, structs.SuccessResponse{
+		Success: true,
+		Message: "User deleted successfully",
+	})
+}
+

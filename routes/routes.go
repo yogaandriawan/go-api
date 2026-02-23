@@ -12,6 +12,9 @@ func SetupRouter() *gin.Engine {
 	//initialize gin
 	router := gin.Default()
 
+	// route cross origin resource sharing (CORS)
+	router.Use(middlewares.CORSMiddleware())
+
 	// route register
 	router.POST("/api/register", controllers.Register)
 
@@ -26,6 +29,12 @@ func SetupRouter() *gin.Engine {
 
 	// route post create user
 	router.POST("/api/users", middlewares.AuthMiddleware(), controllers.CreateUser)
+
+	// route Patch update user
+	router.PATCH("/api/users/:id", middlewares.AuthMiddleware(), controllers.UpdateUser)
+
+	// route delete user
+	router.DELETE("/api/users/:id", middlewares.AuthMiddleware(), controllers.DeleteUser)
 
 	return router
 }
